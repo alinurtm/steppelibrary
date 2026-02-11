@@ -1,0 +1,31 @@
+<div class="qr-scanner-card mb-3">
+    <div class="qr-scanner-title">
+        <i class="bi bi-qr-code-scan"></i> Сканировать QR
+    </div>
+    <p class="qr-scanner-help">
+        Считайте код камерой или загрузите фото QR-кода. Номер заполнится автоматически.
+    </p>
+
+    <div class="qr-viewfinder-shell">
+        <button type="button" id="{{ prefix }}-start" class="qr-activate-btn">
+            <i class="bi bi-camera qr-activate-icon"></i>
+            <span class="qr-activate-label">Нажмите, чтобы включить камеру</span>
+        </button>
+        <button type="button" id="{{ prefix }}-stop" class="qr-stop-btn d-none" aria-label="Остановить камеру">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div id="{{ prefix }}-reader" class="qr-reader d-none"></div>
+        <div class="qr-focus-frame" aria-hidden="true"></div>
+    </div>
+
+    <div class="qr-scanner-actions">
+        <label class="qr-upload-link" for="{{ prefix }}-image">
+            <i class="bi bi-image"></i> Загрузить фото
+        </label>
+        <input id="{{ prefix }}-image" type="file" accept="image/*" class="d-none">
+    </div>
+
+    <div id="{{ prefix }}-status" class="qr-status">
+        Готово к сканированию.
+    </div>
+</div>

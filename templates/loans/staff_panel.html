@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load catalog_tags %}
+
+{% block title %}Панель библиотекаря — SteppeLibrary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1><i class="bi bi-gear"></i> Панель библиотекаря</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row g-3 mb-3 staff-quick-actions">
+        <div class="col-md-6 col-xl-3">
+            <a href="{% url 'loans:issue_book' %}" class="action-card">
+                <div class="action-icon" style="color: var(--success);"><i class="bi bi-box-arrow-right"></i></div>
+                <div class="action-title">Выдать книгу</div>
+                <div class="action-desc">Оформить выдачу</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <a href="{% url 'loans:return_book' %}" class="action-card">
+                <div class="action-icon" style="color: var(--primary);"><i class="bi bi-box-arrow-in-left"></i></div>
+                <div class="action-title">Принять возврат</div>
+                <div class="action-desc">Оформить возврат</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <a href="{% url 'loans:add_book' %}" class="action-card">
+                <div class="action-icon" style="color: var(--accent);"><i class="bi bi-plus-circle"></i></div>
+                <div class="action-title">Добавить книгу</div>
+                <div class="action-desc">Новая в каталог</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <a href="{% url 'loans:manage_fines' %}" class="action-card">
+                <div class="action-icon" style="color: var(--danger);"><i class="bi bi-cash-stack"></i></div>
+                <div class="action-title">Штрафы</div>
+                <div class="action-desc">{{ unpaid_fines|length }} неоплаченных</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-summary">
+        <div class="dashboard-summary-grid">
+            <div class="summary-item">
+                <div class="dash-stat-number">{{ total_books }}</div>
+                <div class="dash-stat-label">Наименований книг</div>
+            </div>
+            <div class="summary-item">
+                <div class="dash-stat-number">{{ total_instances }}</div>
+                <div class="dash-stat-label">Всего экземпляров</div>
+            </div>
+            <div class="summary-item warning">
+                <div class="dash-stat-number">{{ on_loan }}</div>
+                <div class="dash-stat-label">Выдано на руки</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <span><i class="bi bi-exclamation-triangle text-danger"></i> Просроченные</span>
+                    <span class="badge bg-danger">{{ overdue_loans|length }}</span>
+                </div>
+                {% if overdue_loans %}
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Читатель</th>
+                                <th>Книга</th>
+                                <th>Просрочка</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in overdue_loans %}
+                            <tr class="overdue-row">
+                                <td>
+                                    <div class="recent-issue-user">
+                                        <span class="recent-issue-avatar">{{ loan.borrower|author_initials }}</span>
+                                        <div>
+                                            <div>{{ loan.borrower.get_full_name|default:loan.borrower.username }}</div>
+                                            <small class="text-muted">@{{ loan.borrower.username }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ loan.book_instance.book.title }}</td>
+                                <td><span class="status-pill overdue">{{ loan.days_overdue }} дн.</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">Просроченных нет</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <span><i class="bi bi-clock-history"></i> Последние выдачи</span>
+                </div>
+                {% if recent_loans %}
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Читатель</th>
+                                <th>Книга</th>
+                                <th>Дата</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in recent_loans %}
+                            <tr>
+                                <td>
+                                    <div class="recent-issue-user">
+                                        <span class="recent-issue-avatar">{{ loan.borrower|author_initials }}</span>
+                                        <div>{{ loan.borrower.get_full_name|default:loan.borrower.username }}</div>
+                                    </div>
+                                </td>
+                                <td>{{ loan.book_instance.book.title|truncatechars:30 }}</td>
+                                <td>{{ loan.issue_date|date:"d.m.Y" }}</td>
+                                <td>
+                                    {% if loan.is_returned %}
+                                    <span class="status-pill returned">Возвращена</span>
+                                    {% elif loan.is_overdue %}
+                                    <span class="status-pill overdue">Просрочена</span>
+                                    {% else %}
+                                    <span class="status-pill issued">Выдана</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3">Нет выдач</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

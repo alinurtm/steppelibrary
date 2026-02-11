@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Мой кабинет — SteppeLibrary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1><i class="iconsax" icon-name="home-2"></i> Мой кабинет</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="dashboard-summary">
+        <div class="dashboard-summary-grid">
+            <div class="summary-item">
+                <div class="dash-stat-number">{{ active_loans|length }}</div>
+                <div class="dash-stat-label">Книг на руках</div>
+            </div>
+            <div class="summary-item {% if active_reservations %}warning{% endif %}">
+                <div class="dash-stat-number">{{ active_reservations|length }}</div>
+                <div class="dash-stat-label">Активных бронирований</div>
+            </div>
+            <div class="summary-item {% if total_fines > 0 %}danger{% else %}success{% endif %}">
+                <div class="dash-stat-number">{{ total_fines }} KZT</div>
+                <div class="dash-stat-label">Неоплаченные штрафы</div>
+            </div>
+        </div>
+    </div>
+
+    {% if total_fines > 0 %}
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>У вас есть неоплаченные штрафы на сумму {{ total_fines }} KZT.</strong>
+        Пока штрафы не оплачены, новые книги и бронирования заблокированы. Обратитесь к библиотекарю.
+    </div>
+    {% endif %}
+
+    <div class="content-card">
+        <div class="card-header-custom">
+            <span><i class="bi bi-book"></i> Книги на руках</span>
+        </div>
+        {% if active_loans %}
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Книга</th>
+                        <th>Дата выдачи</th>
+                        <th>Срок возврата</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in active_loans %}
+                    <tr class="{% if loan.is_overdue %}overdue-row{% endif %}">
+                        <td>
+                            <a href="{{ loan.book_instance.book.get_absolute_url }}">
+                                {{ loan.book_instance.book.title }}
+                            </a>
+                            <br><small class="text-muted">{{ loan.book_instance.inventory_number }}</small>
+                        </td>
+                        <td>{{ loan.issue_date|date:"d.m.Y" }}</td>
+                        <td>{{ loan.due_date|date:"d.m.Y" }}</td>
+                        <td>
+                            {% if loan.is_overdue %}
+                            <span class="status-pill overdue">Просрочена ({{ loan.days_overdue }} дн.)</span>
+                            {% else %}
+                            <span class="status-pill returned">Осталось {{ loan.days_remaining }} дн.</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        {% include 'includes/empty_shelf.html' %}
+        {% endif %}
+    </div>
+
+    {% if active_reservations %}
+    <div class="content-card">
+        <div class="card-header-custom">
+            <span><i class="bi bi-bookmark"></i> Бронирования</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Книга</th>
+                        <th>Позиция в очереди</th>
+                        <th>Статус</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in active_reservations %}
+                    <tr>
+                        <td><a href="{{ res.book.get_absolute_url }}">{{ res.book.title }}</a></td>
+                        <td><span class="badge bg-primary">{{ res.queue_position }}</span></td>
+                        <td>
+                            {% if res.notified %}
+                            <span class="status-pill returned">Книга доступна (48ч)</span>
+                            {% else %}
+                            <span class="status-pill issued">В ожидании</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'loans:cancel_reservation' res.pk %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Отменить бронирование?')">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if unpaid_fines %}
+    <div class="content-card">
+        <div class="card-header-custom">
+            <span><i class="bi bi-exclamation-triangle"></i> Штрафы</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Книга</th>
+                        <th>Сумма</th>
+                        <th>Дата начисления</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fine in unpaid_fines %}
+                    <tr>
+                        <td>{{ fine.loan.book_instance.book.title }}</td>
+                        <td><strong class="text-danger">{{ fine.amount }} KZT</strong></td>
+                        <td>{{ fine.created_at|date:"d.m.Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if returned_loans %}
+    <div class="content-card">
+        <div class="card-header-custom">
+            <span><i class="bi bi-clock-history"></i> История возвратов</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Книга</th>
+                        <th>Выдана</th>
+                        <th>Возвращена</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in returned_loans %}
+                    <tr>
+                        <td><a href="{{ loan.book_instance.book.get_absolute_url }}">{{ loan.book_instance.book.title }}</a></td>
+                        <td>{{ loan.issue_date|date:"d.m.Y" }}</td>
+                        <td>{{ loan.return_date|date:"d.m.Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

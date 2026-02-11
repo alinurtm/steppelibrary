@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load catalog_tags %}
+
+{% block title %}Авторы — SteppeLibrary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1><i class="bi bi-people"></i> Авторы</h1>
+    </div>
+</div>
+
+<div class="container authors-page">
+    {% if authors %}
+    <div class="row g-4">
+        {% for author in authors %}
+        <div class="col-sm-6 col-lg-3">
+            <a href="{{ author.get_absolute_url }}" class="text-decoration-none">
+                <div class="author-card">
+                    <div
+                        class="author-avatar"
+                        style="background: linear-gradient(145deg, hsl({{ author|avatar_hue }}, 70%, 52%), hsl({{ author|avatar_hue }}, 65%, 42%));"
+                    >
+                        {{ author|author_initials }}
+                    </div>
+                    <h5 class="author-name">{{ author }}</h5>
+                    <div class="author-books">{{ author.book_count }} книг</div>
+                    <span class="author-action btn btn-outline-primary btn-sm">
+                        <i class="bi bi-collection"></i> Книги автора
+                    </span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h4>Авторы не найдены</h4>
+        <p>Добавьте авторов через панель библиотекаря, и они появятся здесь.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

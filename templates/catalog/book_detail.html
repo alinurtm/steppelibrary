@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load catalog_tags %}
+
+{% block title %}{{ book.title }} — SteppeLibrary{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'catalog:book_list' %}">Каталог</a></li>
+            <li class="breadcrumb-item active">{{ book.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Cover -->
+        <div class="col-md-4">
+            <div class="book-detail-cover">
+                {% if book.cover %}
+                <img src="{{ book.cover.url }}" alt="{{ book.title }}">
+                {% else %}
+                {% if book.isbn %}
+                <img
+                    src="{{ book.isbn|open_library_cover }}"
+                    alt="{{ book.title }}"
+                    loading="lazy"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                >
+                <div class="pattern-cover" data-pattern="{{ book.pk|pattern_index }}" style="display: none; min-height: 420px;">
+                    <span class="cover-title">{{ book.title }}</span>
+                    <span class="cover-author">{{ book.display_authors }}</span>
+                </div>
+                {% else %}
+                <div class="pattern-cover" data-pattern="{{ book.pk|pattern_index }}" style="min-height: 420px;">
+                    <span class="cover-title">{{ book.title }}</span>
+                    <span class="cover-author">{{ book.display_authors }}</span>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="col-md-8">
+            <h1 style="font-weight: 800;">{{ book.title }}</h1>
+
+            <p class="lead text-muted mb-3">
+                {% for author in book.authors.all %}
+                <a href="{{ author.get_absolute_url }}" class="text-decoration-none">{{ author }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                {% for genre in book.genres.all %}
+                <span class="genre-tag">{{ genre.name }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-auto">
+                    <div class="content-card py-2 px-3 mb-0">
+                        <small class="text-muted d-block">ISBN</small>
+                        <strong>{{ book.isbn }}</strong>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="content-card py-2 px-3 mb-0">
+                        <small class="text-muted d-block">Язык</small>
+                        <strong>{{ book.get_language_display }}</strong>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="content-card py-2 px-3 mb-0">
+                        <small class="text-muted d-block">Доступно</small>
+                        <strong class="{% if available_count > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ available_count }} из {{ book.total_copies }}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+
+            {% if book.summary %}
+            <div class="content-card">
+                <div class="card-header-custom">Описание</div>
+                <p>{{ book.summary }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 flex-wrap">
+                {% if available_count == 0 and user.is_authenticated %}
+                    {% if has_reservation %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-clock-history"></i> Вы в очереди. Позиция: <strong>{{ queue_position }}</strong>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'loans:reserve_book' book.pk %}" class="btn btn-accent btn-lg">
+                        <i class="bi bi-bookmark-plus"></i> Встать в очередь
+                    </a>
+                    {% endif %}
+                {% endif %}
+
+                {% if user.is_authenticated and user.profile.is_librarian %}
+                <a href="{% url 'loans:add_instance' book.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-plus-circle"></i> Добавить экземпляр
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Instances Table -->
+    <div class="content-card mt-4">
+        <div class="card-header-custom">
+            <span><i class="bi bi-stack"></i> Экземпляры ({{ instances|length }})</span>
+        </div>
+        {% if instances %}
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Инвентарный номер</th>
+                        <th>Статус</th>
+                        <th>Примечания</th>
+                        {% if user.is_authenticated and user.profile.is_librarian %}
+                        <th>QR</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inst in instances %}
+                    <tr class="instance-row">
+                        <td><code>{{ inst.inventory_number }}</code></td>
+                        <td><span class="badge {{ inst.status_badge_class }}">{{ inst.get_status_display }}</span></td>
+                        <td class="text-muted">{{ inst.condition_notes|default:"-" }}</td>
+                        {% if user.is_authenticated and user.profile.is_librarian %}
+                        <td>
+                            <a href="{% url 'loans:view_qr' inst.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-qr-code"></i>
+                            </a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-3">Нет экземпляров</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

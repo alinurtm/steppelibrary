@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Возврат книги — SteppeLibrary{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'loans:staff_panel' %}">Панель</a></li>
+            <li class="breadcrumb-item active">Возврат книги</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <span><i class="bi bi-box-arrow-in-left text-primary"></i> Возврат книги</span>
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary mt-3">
+                        <i class="bi bi-check-lg"></i> Оформить возврат
+                    </button>
+                    <a href="{% url 'loans:staff_panel' %}" class="btn btn-outline-secondary mt-3">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

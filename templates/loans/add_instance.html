@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Добавить экземпляр — SteppeLibrary{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'loans:staff_panel' %}">Панель</a></li>
+            <li class="breadcrumb-item"><a href="{{ book.get_absolute_url }}">{{ book.title|truncatechars:40 }}</a></li>
+            <li class="breadcrumb-item active">Добавить экземпляр</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <span><i class="bi bi-plus-circle"></i> Добавить экземпляр</span>
+                </div>
+                <p class="text-muted mb-3">Книга: <strong>{{ book.title }}</strong></p>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary mt-3">
+                        <i class="bi bi-check-lg"></i> Добавить
+                    </button>
+                    <a href="{{ book.get_absolute_url }}" class="btn btn-outline-secondary mt-3">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

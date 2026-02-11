@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Вход — SteppeLibrary{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2><i class="bi bi-box-arrow-in-right"></i> Вход</h2>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-primary w-100 mt-3">
+                <i class="bi bi-box-arrow-in-right"></i> Войти
+            </button>
+        </form>
+        <div class="text-center mt-3">
+            <span class="text-muted">Нет аккаунта?</span>
+            <a href="{% url 'accounts:register' %}">Зарегистрироваться</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

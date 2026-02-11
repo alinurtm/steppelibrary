@@ -1,0 +1,39 @@
+{% load catalog_tags %}
+<a href="{{ book.get_absolute_url }}" class="text-decoration-none">
+    <div class="book-card">
+        <div class="card-cover">
+            {% if book.cover %}
+                <img src="{{ book.cover.url }}" alt="{{ book.title }}" loading="lazy">
+            {% else %}
+                {% if book.isbn %}
+                <img
+                    src="{{ book.isbn|open_library_cover }}"
+                    alt="{{ book.title }}"
+                    loading="lazy"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                >
+                <div class="pattern-cover" data-pattern="{{ book.pk|pattern_index }}" style="display: none;">
+                    <span class="cover-title">{{ book.title }}</span>
+                    <span class="cover-author">{{ book.display_authors }}</span>
+                </div>
+                {% else %}
+                <div class="pattern-cover" data-pattern="{{ book.pk|pattern_index }}">
+                    <span class="cover-title">{{ book.title }}</span>
+                    <span class="cover-author">{{ book.display_authors }}</span>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="card-title">{{ book.title }}</div>
+            <div class="card-author">{{ book.display_authors }}</div>
+            <div class="card-footer-custom">
+                {% if book.available_copies > 0 %}
+                    <span class="availability-dot available">{{ book.available_copies }} шт.</span>
+                {% else %}
+                    <span class="availability-dot unavailable">Нет в наличии</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</a>

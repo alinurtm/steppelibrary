@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SteppeLibrary — Электронный каталог библиотеки{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <h1>
+                    Библиотека у вас<br>
+                    в <span class="hero-highlight">кармане</span>
+                </h1>
+                <p class="hero-subtitle mb-0">
+                    Ищите книги, бронируйте онлайн, отслеживайте сроки возврата и управляйте чтением в одном месте.
+                </p>
+
+                <form class="hero-search" action="{% url 'catalog:book_list' %}" method="GET">
+                    <div class="hero-search-shell">
+                        <input type="text" name="q" class="form-control" placeholder="Поиск по названию, автору, ISBN...">
+                        <button type="submit" class="btn btn-accent"><i class="iconsax" icon-name="search-normal"></i> Найти</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="hero-graphic">
+                    <img src="{% static 'img/book.svg' %}" alt="Library Art" class="hero-book-img">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="hero-stats pb-4">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="hero-stat-card">
+                    <div class="stat-icon"><i class="iconsax" icon-name="book"></i></div>
+                    <div class="stat-number">{{ total_books }}</div>
+                    <div class="stat-label">Книг в каталоге</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hero-stat-card">
+                    <div class="stat-icon"><i class="iconsax" icon-name="category"></i></div>
+                    <div class="stat-number">{{ genres|length }}</div>
+                    <div class="stat-label">Жанров</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="hero-stat-card">
+                    <div class="stat-icon"><i class="iconsax" icon-name="scan-barcode"></i></div>
+                    <div class="stat-number">QR</div>
+                    <div class="stat-label">Умный учет экземпляров</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if featured_books %}
+<section class="py-4 py-md-5">
+    <div class="container">
+        <h2 class="section-heading">Новые поступления</h2>
+        <div class="row g-4">
+            {% for book in featured_books %}
+            <div class="col-6 col-md-4 col-lg-3">
+                {% include 'includes/book_card.html' with book=book %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'catalog:book_list' %}" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-collection"></i> Весь каталог
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if genres %}
+<section class="py-5" style="background: #fff; border-top: 1px solid var(--gray-100);">
+    <div class="container">
+        <h2 class="section-heading">Жанры</h2>
+        <div class="d-flex flex-wrap gap-2">
+            {% for genre in genres %}
+            <a href="{% url 'catalog:book_list' %}?genre={{ genre.pk }}" class="genre-tag">
+                {{ genre.name }} <span class="text-muted">({{ genre.book_count }})</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
